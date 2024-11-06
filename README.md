@@ -1,7 +1,7 @@
-# CustomSkinsMod
+# CustomSkinsModv1.1.0 The Quaver Update
  A mod to load skins into UNBEATABLE[White Label]
 
-Download and extract the zip file into your 'UNBEATABLE [white label]' folder like you did for Taco's Custom Beatmaps Mod (which needs to be installed for the skins mod to work).
+Download the zip file in the files called 'CustomSkinsModv1.1.0.zip' and extract it into your 'UNBEATABLE [white label]' folder like you did for Taco's Custom Beatmaps Mod (which needs to be installed for the skins mod to work).
 
 Once installed, press '/' in the main menu to toggle the mod on/off (default on), and press '<' or '>' in the main menu to switch Beat or Quaver skins respectively; look at the BepInEx console for feedback (sorry to anyone who has only one monitor). Toggling the mod off and on will reload all skins.
 
