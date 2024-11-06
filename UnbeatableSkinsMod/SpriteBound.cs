@@ -59,11 +59,11 @@ namespace modtest1
 
         public static void ReplaceSprite(List<SpriteBound> spriteBounds, Sprite sprite)
         {
-                var bound = spriteBounds[GetBoundIndexByName(spriteBounds, sprite.name)];
+            var bound = spriteBounds[GetBoundIndexByName(spriteBounds, sprite.name)];
 
-                var s = Sprite.Create(sprite.texture, bound.rect, new Vector2(0.5f, 0.5f));
-                s.OverrideGeometry(bound.vertices, bound.triangles);
-                sprite = s;
+            var s = Sprite.Create(sprite.texture, bound.rect, new Vector2(0.5f, 0.5f));
+            s.OverrideGeometry(bound.vertices, bound.triangles);
+            sprite = s;
         }
 
         public static int GetBoundIndexByName(List<SpriteBound> sbs, string name)

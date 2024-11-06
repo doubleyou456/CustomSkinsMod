@@ -15,12 +15,23 @@ namespace UnbeatableSkinsMod
     internal class CustomSkinsPatches
     {
         private static ManualLogSource Logger { get; set; }
-        public static int customSkinIndex = 0;
+        public static int BeatCustomSkinIndex = -1;
+        public static int QuavCustomSkinIndex = -1;
         public static bool loadCustomSkins = true;
 
         public static void Init(ManualLogSource logger)
         {
             Logger = logger;
+        }
+
+        [HarmonyPatch(typeof(WhiteLabelMainMenu), "Start")]
+        [HarmonyPostfix]
+        private static async void MainMenuStart()
+        {
+            await Task.Delay(1500);
+            Logger.LogInfo("Press '/' to toggle skins mod");
+            Logger.LogInfo($"Press '<' to switch selected Beat skin. Current Beat Skin Set To '{GetSkinName(CustomSkinsPlugin.BeatCustomSkins, BeatCustomSkinIndex)}'");
+            Logger.LogInfo($"Press '>' to switch selected Quaver skin. Current Quaver Skin Set To '{GetSkinName(CustomSkinsPlugin.QuavCustomSkins, QuavCustomSkinIndex)}'");
         }
 
         [HarmonyPatch(typeof(WhiteLabelMainMenu), "Update")]
@@ -33,6 +44,10 @@ namespace UnbeatableSkinsMod
                 {
                     loadCustomSkins = true;
                     Logger.LogInfo("Toggled Skins Mod ON");
+                    BeatCustomSkinIndex = CustomSkinsPlugin.ReloadSkins(CustomSkinsPlugin.BeatCustomSkins, "beat");
+                    Logger.LogInfo($"Current Beat Skin Set To '{GetSkinName(CustomSkinsPlugin.BeatCustomSkins, BeatCustomSkinIndex)}'");
+                    QuavCustomSkinIndex = CustomSkinsPlugin.ReloadSkins(CustomSkinsPlugin.QuavCustomSkins, "quav");
+                    Logger.LogInfo($"Current Quaver Skin Set To '{GetSkinName(CustomSkinsPlugin.QuavCustomSkins, QuavCustomSkinIndex)}'");
                 }
                 else
                 {
@@ -43,24 +58,45 @@ namespace UnbeatableSkinsMod
 
             if ((Input.GetKeyDown(KeyCode.Comma) || Input.GetKeyDown(KeyCode.Less)) && loadCustomSkins)
             {
-                customSkinIndex = customSkinIndex - 1;
-                if (customSkinIndex < 0)
-                    customSkinIndex = CustomSkinsPlugin.customSkins.Count - 1;
-                Logger.LogInfo($"Current Skin Changed To '{CustomSkinsPlugin.customSkins[customSkinIndex]}'");
+                BeatCustomSkinIndex++;
+                if (BeatCustomSkinIndex >= CustomSkinsPlugin.BeatCustomSkins.Count)
+                    BeatCustomSkinIndex = -1;
+
+                Logger.LogInfo($"Current Beat Skin Changed To '{GetSkinName(CustomSkinsPlugin.BeatCustomSkins, BeatCustomSkinIndex)}'");
             }
             if ((Input.GetKeyDown(KeyCode.Period) || Input.GetKeyDown(KeyCode.Greater)) && loadCustomSkins)
             {
-                customSkinIndex = (customSkinIndex + 1) % CustomSkinsPlugin.customSkins.Count;
-                Logger.LogInfo($"Current Skin Changed To '{CustomSkinsPlugin.customSkins[customSkinIndex]}'");
+                QuavCustomSkinIndex++;
+                if (QuavCustomSkinIndex >= CustomSkinsPlugin.QuavCustomSkins.Count)
+                    QuavCustomSkinIndex = -1;
+
+                Logger.LogInfo($"Current Quaver Skin Changed To '{GetSkinName(CustomSkinsPlugin.QuavCustomSkins, QuavCustomSkinIndex)}'");
             }
+        }
+
+        public static string GetSkinName(IReadOnlyList<string> skins, int index)
+        {
+            if (index == -1)
+                return "Default";
+            else
+                return skins[index];
         }
 
         [HarmonyPatch(typeof(RhythmPlayer), "Awake")]
         [HarmonyPostfix]
-        private static void AwakePostPatch(ref SpriteRenderer ___sprite, ref Animator ___animator)
+        private static void AwakePostPatchBeat(ref SpriteRenderer ___sprite, ref Animator ___animator)
         {
-            if (loadCustomSkins)
-                UpdateSkin(CustomSkinsPlugin.customSkins, ___sprite, ___animator);
+            if (loadCustomSkins && BeatCustomSkinIndex >= 0)
+                UpdateSkin(CustomSkinsPlugin.BeatCustomSkins, ___sprite, ___animator, BeatCustomSkinIndex);
+            //GetSpritesFromAnimator(___animator, ___sprite);
+        }
+
+        [HarmonyPatch(typeof(RhythmAssist), "Awake")]
+        [HarmonyPostfix]
+        private static void AwakePostPatchQuav(ref SpriteRenderer ___sprite, ref Animator ___animator)
+        {
+            if (loadCustomSkins && QuavCustomSkinIndex >= 0)
+                UpdateSkin(CustomSkinsPlugin.QuavCustomSkins, ___sprite, ___animator, QuavCustomSkinIndex);
             //GetSpritesFromAnimator(___animator, ___sprite);
         }
 
@@ -82,22 +118,22 @@ namespace UnbeatableSkinsMod
             return "";
         }
 
-        private static void UpdateSkin(IReadOnlyList<string> skinFolders, SpriteRenderer spriteR, Animator anim)
+        private static void UpdateSkin(IReadOnlyList<string> skinFolders, SpriteRenderer spriteR, Animator anim, int index)
         {
-            string skin = GetSkinInFolder(skinFolders, customSkinIndex);
+            string skin = GetSkinInFolder(skinFolders, index);
             if (skin == "") {
-                Logger.LogInfo((object)("No skin found in folder " + skinFolders[customSkinIndex]));
+                Logger.LogInfo((object)("No skin found in folder " + skinFolders[index]));
                 return;
             }
 
             Logger.LogInfo((object)("Patching " + spriteR.sprite.texture.name + " with " + skin));
             ImageConversion.LoadImage(spriteR.sprite.texture, File.ReadAllBytes(skin));
 
-            string skinBounds = GetSkinBounds(skinFolders, customSkinIndex);
+            string skinBounds = GetSkinBounds(skinFolders, index);
             if (skinBounds != "")
             {
-                //var spriteBounds = LoadCustomSkinBounds(skinBounds);
-                var spriteBounds = new List<SpriteBound>();
+                var spriteBounds = LoadCustomSkinBounds(skinBounds);
+                //var spriteBounds = new List<SpriteBound>();
                 ReplaceSpritesInAnimator(anim, spriteR, spriteBounds);
             }
         }
@@ -125,18 +161,7 @@ namespace UnbeatableSkinsMod
             {
                 var replace = false;
                 var f = new List<float>();
-                //string lastSprite = "";
-                //_allSprites.AddRange(GetSpritesFromClip(ac));
-                //anim.Play(ac.name);
-                //for (int i = 0; i < 500; i++)
-                //{
-                //    await Task.Delay(1);
-                //    if (lastSprite != spriteR.sprite.name)
-                //    {
-                //        Logger.LogInfo(ac.name + " - " + ((i + 1) * 1).ToString() + "ms: " + spriteR.sprite.name);
-                //        lastSprite = spriteR.sprite.name;
-                //    }
-                //}
+                
                 switch (ac.name)
                 {
                     case "BeatCombatIntro":
@@ -174,6 +199,7 @@ namespace UnbeatableSkinsMod
 
                     case "BeatCombatGroundBlockIntro":
                     case "BeatCombatAirBlockIntro":
+                    case "QuaverCombatAirBlockLoop":
                         f = new List<float> {0f, 0.5f};
                         replace = true;
                         break;
@@ -194,6 +220,8 @@ namespace UnbeatableSkinsMod
                     case "BeatCombatAttack08":
                     case "BeatCombatAttack09":
                     case "BeatCombatAttack10":
+                    case "QuaverCombatAttack01":
+                    case "QuaverCombatAttack02":
                         f = new List<float> {0f, 0.25f, 0.75f};
                         replace = true;
                         break;
@@ -203,9 +231,15 @@ namespace UnbeatableSkinsMod
                         replace = true;
                         break;
 
+                    case "QuaverCombatBackgroundIdle":
+                        f = new List<float> { };
+                        for (int i = 1; i < 55; i++)
+                            f.Add(i / 55f);
+                        break;
+
                     default:
                         break;
-                }
+                }//end switch
 
                 if (replace)
                 {
@@ -217,8 +251,56 @@ namespace UnbeatableSkinsMod
                         SpriteBound.ReplaceSprite(sbs, spriteR.sprite);
                     }
                     replace = false;
+                }//end if
+            }//end foreach
+        }//end ReplaceSpritesInAnimator
+
+        public static async void GetSpritesFromAnimator(Animator anim, SpriteRenderer spriteR) //testing
+        {
+            foreach (AnimationClip ac in anim.runtimeAnimatorController.animationClips)
+            {
+
+                /*
+                string lastSprite = "";
+                anim.Play(ac.name);
+                for (int i = 0; i < 500; i++)
+                {
+                    await Task.Delay(1);
+                    if (lastSprite != spriteR.sprite.name)
+                    {
+                        Logger.LogInfo(ac.name + " - " + ((i + 1) * 1).ToString() + "ms: " + spriteR.sprite.name);
+                        lastSprite = spriteR.sprite.name;
+                    }
                 }
+                */
+                /*
+                var f = new List<float>();
+
+                switch (ac.name)
+                {
+                    case "QuaverCombatAirBlockLoop":
+                        f = new List<float> { 0f, 0.5f };
+                        break;
+                    case "QuaverCombatAttack01":
+                    case "QuaverCombatAttack02":
+                        f = new List<float> { 0f, 0.25f, 0.75f };
+                        break;
+                    case "QuaverCombatBackgroundIdle":
+                        f = new List<float> { };
+                        for (int i = 1; i < 55; i++)
+                            f.Add(i / 55f);
+                        break;
+                }
+
+                foreach (var f2 in f)
+                {
+                    anim.Play(ac.name, -1, f2);
+                    await Task.Delay(1);//1
+                    Logger.LogInfo("Replacing sprite: " + ac.name + " - " + spriteR.sprite.name);
+                }
+                */
             }
         }
-    }
-}
+
+    }//end CustomSkinPatches
+}//end namespace

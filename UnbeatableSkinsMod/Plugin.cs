@@ -7,32 +7,38 @@ using System.Runtime.CompilerServices;
 
 namespace UnbeatableSkinsMod
 {
-    [BepInPlugin("doubleyou.skinsMod", "Skins Mod", "1.0.0")]
+    [BepInPlugin("doubleyou.skinsMod", "Skins Mod", "1.1.0")]
     public class CustomSkinsPlugin : BaseUnityPlugin
     {
         private readonly Harmony harmony = new Harmony("doubleyou.skinsMod");
         private static CustomSkinsPlugin Instance;
-        internal ManualLogSource mls;
+        internal static ManualLogSource mls;
 
-        public static readonly string skinsFolder = "CustomSkins";
-        public static readonly List<string> customSkins = new List<string>();
+        public static readonly string BeatSkinsFolder = "BeatCustomSkins";
+        public static readonly string QuavSkinsFolder = "QuaverCustomSkins";
+        public static readonly List<string> BeatCustomSkins = new List<string>();
+        public static readonly List<string> QuavCustomSkins = new List<string>();
 
         private static void FindSkins()
         {
-            if (!Directory.Exists(skinsFolder))
+            if (!Directory.Exists(BeatSkinsFolder))
             {
-                Directory.CreateDirectory(skinsFolder);
+                if (Directory.Exists("CustomSkins"))
+                    Directory.Move("CustomSkins", BeatSkinsFolder);
+                else
+                    Directory.CreateDirectory(BeatSkinsFolder);
             }
+
+            if (!Directory.Exists(QuavSkinsFolder))
+                Directory.CreateDirectory(QuavSkinsFolder);
         }
 
-        private static void LoadSkins()
+        private void LoadSkins()
         {
-            string[] dirs = Directory.GetDirectories(skinsFolder);
-            foreach (string text in dirs)
-                customSkins.Add(text);
-            string[] skins = Directory.GetFiles(skinsFolder,"*.png");
-            foreach (string text in skins)
-                customSkins.Add(text);
+            mls.LogInfo("Loading Beat Skins");
+            ReloadSkins(BeatCustomSkins, "beat");
+            mls.LogInfo("Loading Quaver Skins");
+            ReloadSkins(QuavCustomSkins, "quav");
         }
 
         public static bool SkinInFolder(string folder)
@@ -42,6 +48,42 @@ namespace UnbeatableSkinsMod
                 if (skin.EndsWith(".png"))
                     return true;
             return false;
+        }
+
+        public static void FoundSkins(List<string> skins)
+        {
+            foreach (string text in skins)
+                if (SkinInFolder(text))
+                    mls.LogInfo("Found Skin in: " + text);
+        }
+
+        public static int ReloadSkins(List<string> skins, string character)
+        {
+            List<string> reload = new List<string>();
+            switch (character.ToLower())
+            {
+                case "beat":
+                    string[] Bdirs = Directory.GetDirectories(BeatSkinsFolder);
+                    foreach (string text in Bdirs)
+                        reload.Add(text);; 
+                    break;
+
+                case "quav":
+                case "quaver":
+                    string[] Qdirs = Directory.GetDirectories(QuavSkinsFolder);
+                    foreach (string text in Qdirs)
+                        reload.Add(text);
+                    break;
+
+                default:
+                    return -1;
+            }//end switch
+
+            FoundSkins(reload);
+            skins.Clear();
+            foreach (string text in reload)
+                skins.Add(text);
+            return -1;
         }
 
         private void Awake()
@@ -56,19 +98,13 @@ namespace UnbeatableSkinsMod
 
             FindSkins();
 
-            mls.LogInfo("Loading Skins");
-
             LoadSkins();
 
-            if (customSkins.Count == 0)
+            if (BeatCustomSkins.Count == 0 && QuavCustomSkins.Count == 0)
             {
                 mls.LogInfo("No Skins Found, Stopping Mod Load");
                 return;
             }
-
-            foreach (string text in customSkins)
-                if (SkinInFolder(text))
-                    mls.LogInfo("Found Skin in: " + text);
             
             CustomSkinsPatches.Init(mls);
             harmony.PatchAll(typeof(CustomSkinsPatches));
