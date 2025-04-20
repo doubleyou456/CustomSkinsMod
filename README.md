@@ -1,4 +1,4 @@
-# CustomSkinsMod
+# CustomSkinsModv1.1.0 The Quaver Update
  A mod to load skins into UNBEATABLE[White Label]
 
 Download the zip file in the files called 'CustomSkinsModWLv1.1.0.zip' or 'CustomSkinsModDemov1.0.0.zip' (not the one in <>code) and extract it into your 'UNBEATABLE [white label]' or 'UNBEATABLE [DEMO]' folder.
