@@ -31,7 +31,7 @@ namespace UnbeatableSkinsMod
 
             if (!Directory.Exists(QuavSkinsFolder))
                 Directory.CreateDirectory(QuavSkinsFolder);
-        }
+        }//end FindSkins
 
         private void LoadSkins()
         {
@@ -39,7 +39,7 @@ namespace UnbeatableSkinsMod
             ReloadSkins(BeatCustomSkins, "beat");
             mls.LogInfo("Loading Quaver Skins");
             ReloadSkins(QuavCustomSkins, "quav");
-        }
+        }//end LoadSkins
 
         public static bool SkinInFolder(string folder)
         {
@@ -48,14 +48,14 @@ namespace UnbeatableSkinsMod
                 if (skin.EndsWith(".png"))
                     return true;
             return false;
-        }
+        }//end SkinInFolder
 
         public static void FoundSkins(List<string> skins)
         {
             foreach (string text in skins)
                 if (SkinInFolder(text))
                     mls.LogInfo("Found Skin in: " + text);
-        }
+        }//end FoundSkins
 
         public static int ReloadSkins(List<string> skins, string character)
         {
@@ -84,7 +84,7 @@ namespace UnbeatableSkinsMod
             foreach (string text in reload)
                 skins.Add(text);
             return -1;
-        }
+        }//end ReloadSkins
 
         private void Awake()
         {
@@ -110,6 +110,6 @@ namespace UnbeatableSkinsMod
             harmony.PatchAll(typeof(CustomSkinsPatches));
 
             mls.LogInfo("Finished");
-        }
+        }//end Awake
     }
-}
+}//end namespace

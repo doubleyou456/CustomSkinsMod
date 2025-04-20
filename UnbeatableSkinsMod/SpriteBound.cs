@@ -10,17 +10,17 @@ namespace modtest1
     class SpriteBound
     {
 
-        string name;
-        Rect rect;
-        Vector2[] vertices;
-        ushort[] triangles;
+        string _name;
+        Rect _rect;
+        Vector2[] _vertices;
+        ushort[] _triangles;
 
         public SpriteBound(string n, string r, string v)
         {
-            name = n;
-            rect = MakeRect(r);
-            vertices = MakeVertices(v);
-            triangles = MakeTriangles();
+            _name = n;
+            _rect = MakeRect(r);
+            _vertices = MakeVertices(v);
+            _triangles = MakeTriangles();
         }
 
         private Rect MakeRect(string r)
@@ -36,7 +36,7 @@ namespace modtest1
         {
             var list = v.Split(',');
             Vector2[] vecs = new Vector2[(int) list.Length/2];
-            vecs[0] = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
+            vecs[0] = new Vector2(_rect.x + _rect.width/2, _rect.y + _rect.height/2);
             for (int i = 0; i < list.Length; i = i + 2)
                 vecs[(int) i/2] = new Vector2(int.Parse(list[i]), int.Parse(list[i+1]));
             return vecs;
@@ -44,12 +44,12 @@ namespace modtest1
 
         private ushort[] MakeTriangles()
         {
-            ushort[] triangles = new ushort[(vertices.Length - 1) * 3];
-            for (ushort i = 0; i < vertices.Length - 1; i++)
+            ushort[] triangles = new ushort[(_vertices.Length - 1) * 3];
+            for (ushort i = 0; i < _vertices.Length - 1; i++)
             {
                 triangles[i*3] = 0;
-                triangles[i*3 + 1] = Convert.ToUInt16((i + 1) % vertices.Length);
-                triangles[i*3 + 2] = Convert.ToUInt16((i + 2) % vertices.Length);
+                triangles[i*3 + 1] = Convert.ToUInt16((i + 1) % _vertices.Length);
+                triangles[i*3 + 2] = Convert.ToUInt16((i + 2) % _vertices.Length);
             }
             //triangles[triangles.Length-3] = 0;
             //triangles[triangles.Length-2] = Convert.ToUInt16(vertices.Length-1);
@@ -61,15 +61,15 @@ namespace modtest1
         {
             var bound = spriteBounds[GetBoundIndexByName(spriteBounds, sprite.name)];
 
-            var s = Sprite.Create(sprite.texture, bound.rect, new Vector2(0.5f, 0.5f));
-            s.OverrideGeometry(bound.vertices, bound.triangles);
+            var s = Sprite.Create(sprite.texture, bound._rect, new Vector2(0.5f, 0.5f));
+            s.OverrideGeometry(bound._vertices, bound._triangles);
             sprite = s;
         }
 
         public static int GetBoundIndexByName(List<SpriteBound> sbs, string name)
         {
             for (int i = 0; i < sbs.Count; i++)
-                if (sbs[i].name == name)
+                if (sbs[i]._name == name)
                     return i;
             return -1;
         }

@@ -37,7 +37,7 @@
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\Games\steamapps\common\UNBEATABLE [white label]\UNBEATABLE [white label]_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>E:\Games\steamapps\common\UNBEATABLE Demo\UNBEATABLE [DEMO]_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx, Version=5.4.22.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

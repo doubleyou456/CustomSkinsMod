@@ -2,6 +2,7 @@
 using HarmonyLib;
 using modtest1;
 using Rhythm;
+using Arcade.UI.SongSelect;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -24,7 +25,7 @@ namespace UnbeatableSkinsMod
             Logger = logger;
         }
 
-        [HarmonyPatch(typeof(WhiteLabelMainMenu), "Start")]
+        [HarmonyPatch(typeof(ArcadeSongDatabase), "Awake")]
         [HarmonyPostfix]
         private static async void MainMenuStart()
         {
@@ -34,7 +35,7 @@ namespace UnbeatableSkinsMod
             Logger.LogInfo($"Press '>' to switch selected Quaver skin. Current Quaver Skin Set To '{GetSkinName(CustomSkinsPlugin.QuavCustomSkins, QuavCustomSkinIndex)}'");
         }
 
-        [HarmonyPatch(typeof(WhiteLabelMainMenu), "Update")]
+        [HarmonyPatch(typeof(ArcadeSongDatabase), "Update")]
         [HarmonyPostfix]
         private static void MainMenuUpdate()
         {
@@ -300,7 +301,7 @@ namespace UnbeatableSkinsMod
                 }
                 */
             }
-        }
+        }//end GetSpritesFromAnimaton
 
     }//end CustomSkinPatches
 }//end namespace
